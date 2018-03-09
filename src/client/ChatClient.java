@@ -4,7 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -20,8 +24,9 @@ public class ChatClient{
 	}
 	
 	public void connect(String host, int port) {
+		String hostParsed = getHost(host); 
 		try{
-			socket = new Socket(host, port);
+			socket = new Socket(hostParsed, port);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out = new PrintWriter(socket.getOutputStream(), true);
 		}catch (IOException e){
@@ -30,9 +35,11 @@ public class ChatClient{
 	}
 	
 	public void post(String command, String host, String uri, String httpNumber) {
+		String hostParsed = getHost(host);
 		System.out.println(command + " " + uri + " " + httpNumber);
+		System.out.println("Host: " + hostParsed);
 		out.println(command + " " + uri + " " + httpNumber);
-		out.println("Host: " + host);
+		out.println("Host: " + hostParsed);
 		out.println();
 	}
 	
@@ -64,6 +71,17 @@ public class ChatClient{
 	
 	private void lookupEmbedded(String data) {
 		Document doc = Jsoup.parse(data);
+	}
+	
+	public static String getHost(String host) {
+		URL pathUrl = null;
+		try {
+			pathUrl = new URL(host);
+		} catch (MalformedURLException e) {
+			System.out.print("Exception catched");
+			e.printStackTrace();
+		}
+		return pathUrl.getHost();
 	}
 	
 	public void close() {
