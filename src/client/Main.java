@@ -6,8 +6,13 @@ public class Main{
 		ChatClient client = new ChatClient();
 		client.connect(args[1], Integer.parseInt(args[2]));
 		client.post(args[0], args[1], resource, args[3]);
-		while(true) {
-			client.poll(resource + ".html");
+		while(client.poll("tldp.html")) {
+			try{
+				Thread.sleep(100);
+			}catch (InterruptedException e){
+				e.printStackTrace();
+			}
 		}
+		client.close();
 	}
 }
