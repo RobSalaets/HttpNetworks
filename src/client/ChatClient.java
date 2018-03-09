@@ -44,7 +44,7 @@ public class ChatClient{
 				PrintWriter writer = new PrintWriter(filename, "UTF-8");
 				boolean htmlLines = false;
 				while(in.ready()) {
-					if(line.toLowerCase().contains("!doctype"));
+					if(line.toLowerCase().contains("!doctype"))
 						htmlLines = true;
 					if(htmlLines)
 						data += line +"\n";
