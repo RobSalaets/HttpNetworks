@@ -36,11 +36,22 @@ public class ChatClient{
 		}
 	}
 	
+	/*
 	public void post(String command, String host, String uri, String httpNumber) {
 		String hostParsed = getHost(host);
 		System.out.println(command + " " + uri + " " + httpNumber);
 		System.out.println("Host: " + hostParsed);
 		out.println(command + " " + uri + " " + httpNumber);
+		out.println("Host: " + hostParsed);
+		out.println();
+	}
+	*/
+	public void post(String command, String fullUrl, String httpNumber) {
+		String hostParsed = getHost(fullUrl);
+		String pathParsed = getPath(fullUrl);
+		System.out.println(command + " " + pathParsed + " " + httpNumber);
+		System.out.println("Host: " + hostParsed);
+		out.println(command + " " + pathParsed + " " + httpNumber);
 		out.println("Host: " + hostParsed);
 		out.println();
 	}
@@ -99,11 +110,10 @@ public class ChatClient{
 		URL pathUrl = null;
 		try {
 			pathUrl = new URL(host);
-		} catch (MalformedURLException e) {
-			System.out.print("Exception catched");
-			e.printStackTrace();
+			if (pathUrl.getPath().length() > 0) return pathUrl.getPath();
+		} catch (MalformedURLException ignore) {
 		}
-		return pathUrl.getPath();
+		return "/";
 	}
 	
 	public void close() {
