@@ -27,8 +27,8 @@ public class ChatClient{
 		
 	}
 	
-	public void connect(String host, int port) {
-		String hostParsed = getHost(host);
+	public void connect(String fullUri, int port) {
+		String hostParsed = getHostAndPath(fullUri)[0];
 		try{
 			socket = new Socket(hostParsed, port);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -49,8 +49,9 @@ public class ChatClient{
 	}
 	*/
 	public void post(String command, String fullUri, String httpNumber) {
-		String hostParsed = getHost(fullUri);
-		String pathParsed = getPath(fullUri);
+		String[] uriParsed = getHostAndPath(fullUri);
+		String hostParsed = uriParsed[0];//getHost(fullUri);
+		String pathParsed = uriParsed[1];//getPath(fullUri);
 		System.out.println(command + " " + pathParsed + " " + httpNumber);
 		System.out.println("Host: " + hostParsed);
 		out.println(command + " " + pathParsed + " " + httpNumber);
@@ -95,25 +96,17 @@ public class ChatClient{
 		}
 	}
 	
-	public static String getHost(String fullUri) {
+	public static String[] getHostAndPath(String fullUri) {
 		try {
-			return new URL(fullUri).getHost();
+			String[] result = new String[2];
+			result[0] = new URL(fullUri).getHost();
+			String path = new URL(fullUri).getPath();
+			if (path.length() > 0) result[1] = path;
+			else result[1] = "/";
+			return result;
 		} catch (MalformedURLException ignore) {
 		}
-		// TODO: legit?
-		if (fullUri.charAt(fullUri.length() - 1) == '/') 
-			return fullUri.substring(0, fullUri.length()-1);
-		return fullUri;
-	}
-
-	public static String getPath(String fullUri) {
-		URL pathUrl = null;
-		try {
-			pathUrl = new URL(fullUri);
-			if (pathUrl.getPath().length() > 0) return pathUrl.getPath();
-		} catch (MalformedURLException ignore) {
-		}
-		return "/";
+		return fullUri.split("/", 2);
 	}
 	
 	public void close() {
