@@ -15,6 +15,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.sun.jndi.toolkit.url.Uri;
+
 public class ChatClient{
 	
 	private Socket socket;
@@ -46,9 +48,9 @@ public class ChatClient{
 		out.println();
 	}
 	*/
-	public void post(String command, String fullUrl, String httpNumber) {
-		String hostParsed = getHost(fullUrl);
-		String pathParsed = getPath(fullUrl);
+	public void post(String command, String fullUri, String httpNumber) {
+		String hostParsed = getHost(fullUri);
+		String pathParsed = getPath(fullUri);
 		System.out.println(command + " " + pathParsed + " " + httpNumber);
 		System.out.println("Host: " + hostParsed);
 		out.println(command + " " + pathParsed + " " + httpNumber);
@@ -93,23 +95,21 @@ public class ChatClient{
 		}
 	}
 	
-	// TODO
-	public static String getHost(String host) {
-		URL pathUrl = null;
+	public static String getHost(String fullUri) {
 		try {
-			pathUrl = new URL(host);
-			return pathUrl.getHost();
+			return new URL(fullUri).getHost();
 		} catch (MalformedURLException ignore) {
 		}
-		return host;
+		// TODO: legit?
+		if (fullUri.charAt(fullUri.length() - 1) == '/') 
+			return fullUri.substring(0, fullUri.length()-1);
+		return fullUri;
 	}
 
-	// TODO: What to do with a host with path?
-	// i.e.: https://www.youtube.com/feed/subsciptions
-	public static String getPath(String host) {
+	public static String getPath(String fullUri) {
 		URL pathUrl = null;
 		try {
-			pathUrl = new URL(host);
+			pathUrl = new URL(fullUri);
 			if (pathUrl.getPath().length() > 0) return pathUrl.getPath();
 		} catch (MalformedURLException ignore) {
 		}
