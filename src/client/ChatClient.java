@@ -67,7 +67,7 @@ public class ChatClient{
 				PrintWriter writer = new PrintWriter(filename, "UTF-8");
 				boolean htmlLines = false;
 				while(in.ready()) {
-					if(line.toLowerCase().contains("!doctype"))
+					if(line.toLowerCase().contains("<html>"))
 						htmlLines = true;
 					if(htmlLines)
 						data.append(line).append("\n");
