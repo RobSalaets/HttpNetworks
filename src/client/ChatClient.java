@@ -97,8 +97,8 @@ public class ChatClient{
 	}
 	
 	public static String[] getHostAndPath(String fullUri) {
+		String[] result = new String[2];
 		try {
-			String[] result = new String[2];
 			result[0] = new URL(fullUri).getHost();
 			String path = new URL(fullUri).getPath();
 			if (path.length() > 0) result[1] = path;
@@ -106,7 +106,13 @@ public class ChatClient{
 			return result;
 		} catch (MalformedURLException ignore) {
 		}
-		return fullUri.split("/", 2);
+		if (fullUri.split("/", 2).length == 1){
+			result[0] = fullUri;
+			result[1] = "/";
+			return result;
+		} else {
+			return fullUri.split("/", 2);
+		}
 	}
 	
 	public void close() {
