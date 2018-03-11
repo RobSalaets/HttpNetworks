@@ -12,6 +12,8 @@ import java.net.URL;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class ChatClient{
 	
@@ -24,7 +26,7 @@ public class ChatClient{
 	}
 	
 	public void connect(String host, int port) {
-		String hostParsed = getHost(host); 
+		String hostParsed = getHost(host);
 		try{
 			socket = new Socket(hostParsed, port);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -47,19 +49,19 @@ public class ChatClient{
 		try{
 			String line = in.readLine();
 			if(line != null) {
-				String data = "";
+				StringBuilder data = new StringBuilder();
 				PrintWriter writer = new PrintWriter(filename, "UTF-8");
 				boolean htmlLines = false;
 				while(in.ready()) {
 					if(line.toLowerCase().contains("!doctype"))
 						htmlLines = true;
 					if(htmlLines)
-						data += line +"\n";
+						data.append(line).append("\n");
 					System.out.println(line);
 					line = in.readLine();
 				}
-				lookupEmbedded(data);
-				writer.println(data);
+				lookupEmbedded(data.toString());
+				writer.println(data.toString());
 				writer.close();
 				return false;
 			}
@@ -69,11 +71,31 @@ public class ChatClient{
 		return true;
 	}
 	
+	// TODO
 	private void lookupEmbedded(String data) {
 		Document doc = Jsoup.parse(data);
+		Elements images = doc.select("img");
+		for (Element image: images) {
+			// TODO: Save image in system
+			String imageString = image.attr("src");
+			System.out.println("IMAGE URL: " + imageString);
+		}
 	}
 	
+	// TODO
 	public static String getHost(String host) {
+		URL pathUrl = null;
+		try {
+			pathUrl = new URL(host);
+			return pathUrl.getHost();
+		} catch (MalformedURLException ignore) {
+		}
+		return host;
+	}
+
+	// TODO: What to do with a host with path?
+	// i.e.: https://www.youtube.com/feed/subsciptions
+	public static String getPath(String host) {
 		URL pathUrl = null;
 		try {
 			pathUrl = new URL(host);
@@ -81,7 +103,7 @@ public class ChatClient{
 			System.out.print("Exception catched");
 			e.printStackTrace();
 		}
-		return pathUrl.getHost();
+		return pathUrl.getPath();
 	}
 	
 	public void close() {
