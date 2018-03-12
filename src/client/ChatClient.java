@@ -1,118 +1,83 @@
 package client;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import com.sun.jndi.toolkit.url.Uri;
 
 public class ChatClient{
 	
 	private Socket socket;
 	private BufferedReader in;
 	private PrintWriter out;
-
 	public ChatClient() {
 		
 	}
 	
-	public void connect(String fullUri, int port) {
-		String hostParsed = getHostAndPath(fullUri)[0];
+	public void connect(String host, int port) {
 		try{
-			socket = new Socket(hostParsed, port);
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			socket = new Socket(host, port);
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "ISO-8859-1"));
 			out = new PrintWriter(socket.getOutputStream(), true);
 		}catch (IOException e){
 			e.printStackTrace();
 		}
 	}
 	
-	/*
-	public void post(String command, String host, String uri, String httpNumber) {
-		String hostParsed = getHost(host);
-		System.out.println(command + " " + uri + " " + httpNumber);
-		System.out.println("Host: " + hostParsed);
-		out.println(command + " " + uri + " " + httpNumber);
-		out.println("Host: " + hostParsed);
-		out.println();
-	}
-	*/
-	public void post(String command, String fullUri, String httpNumber) {
-		String[] uriParsed = getHostAndPath(fullUri);
-		String hostParsed = uriParsed[0];//getHost(fullUri);
-		String pathParsed = uriParsed[1];//getPath(fullUri);
-		System.out.println(command + " " + pathParsed + " " + httpNumber);
-		System.out.println("Host: " + hostParsed);
-		out.println(command + " " + pathParsed + " " + httpNumber);
-		out.println("Host: " + hostParsed);
+	public void httpCommand(String command, String host, String resource, String httpNumber) {
+		System.out.println(command + " " + resource + " " + httpNumber);
+		System.out.println("Host: " + host);
+		out.println(command + " " + resource + " " + httpNumber);
+		out.println("Host: " + host);
 		out.println();
 	}
 	
-	public boolean poll(String filename) {
+	public boolean pollForResource(String filename) {
 		try{
 			String line = in.readLine();
 			if(line != null) {
-				StringBuilder data = new StringBuilder();
-				PrintWriter writer = new PrintWriter(filename, "UTF-8");
-				boolean htmlLines = false;
+				System.out.println(line + " for resource: " + filename);
+				File file = new File(filename);
+				if(filename.contains("/"))
+					file.getParentFile().mkdirs();
+				file.createNewFile();
+				FileOutputStream binWriter = new FileOutputStream(file);
+				PrintWriter writer = new PrintWriter(file, "UTF-8");
+				boolean dataLines = false;
+				boolean binary= false;
+				StringBuffer data = new StringBuffer();
 				while(in.ready()) {
-					if(line.toLowerCase().contains("<html>"))
-						htmlLines = true;
-					if(htmlLines)
-						data.append(line).append("\n");
-					System.out.println(line);
+					if(dataLines) {
+						if(!binary)
+							writer.println(line);
+						else {
+							data.append(line + "\n");
+						}
+					}else
+						System.out.println(line);
+					
+					if(line.equals("")) 
+						dataLines = true;
+					if(line.toLowerCase().contains("content-type:") && !binary && line.toLowerCase().contains("image"))
+						binary = true;
+					
 					line = in.readLine();
 				}
-				lookupEmbedded(data.toString());
-				writer.println(data.toString());
+				if(binary)
+					binWriter.write(data.toString().getBytes("ISO-8859-1"));
 				writer.close();
+				binWriter.close();
 				return false;
 			}
 		}catch (IOException e) {
 			e.printStackTrace();
+			return false;
 		}
 		return true;
-	}
-	
-	// TODO
-	private void lookupEmbedded(String data) {
-		Document doc = Jsoup.parse(data);
-		Elements images = doc.select("img");
-		for (Element image: images) {
-			// TODO: Save image in system
-			String imageString = image.attr("src");
-			System.out.println("IMAGE URL: " + imageString);
-		}
-	}
-	
-	public static String[] getHostAndPath(String fullUri) {
-		String[] result = new String[2];
-		try {
-			result[0] = new URL(fullUri).getHost();
-			String path = new URL(fullUri).getPath();
-			if (path.length() > 0) result[1] = path;
-			else result[1] = "/";
-			return result;
-		} catch (MalformedURLException ignore) {
-		}
-		if (fullUri.split("/", 2).length == 1){
-			result[0] = fullUri;
-			result[1] = "/";
-			return result;
-		} else {
-			return fullUri.split("/", 2);
-		}
 	}
 	
 	public void close() {
