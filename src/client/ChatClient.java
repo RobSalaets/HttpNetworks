@@ -1,12 +1,16 @@
 package client;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.URL;
 
 
 public class ChatClient{
@@ -36,13 +40,13 @@ public class ChatClient{
 		out.println();
 	}
 	
-	public boolean pollForResource(String filename) {
+	public boolean pollForResource(String imageResource) {
 		try{
 			String line = in.readLine();
 			if(line != null) {
-				System.out.println(line + " for resource: " + filename);
-				File file = new File(filename);
-				if(filename.contains("/"))
+				System.out.println(line + " for resource: " + imageResource);
+				File file = new File(imageResource);
+				if(imageResource.contains("/"))
 					file.getParentFile().mkdirs();
 				file.createNewFile();
 				FileOutputStream binWriter = new FileOutputStream(file);
@@ -72,6 +76,7 @@ public class ChatClient{
 				writer.close();
 				binWriter.close();
 				return false;
+				
 			}
 		}catch (IOException e) {
 			e.printStackTrace();

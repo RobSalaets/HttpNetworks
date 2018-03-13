@@ -10,7 +10,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-public class Main{
+public class Main {
 
 	public static void main(String[] args){
 		ChatClient client = new ChatClient();
@@ -20,7 +20,12 @@ public class Main{
 		int port = Integer.parseInt(args[2]);
 		String command = args[0];
 		String httpNumber = args[3];
-		String htmlFileName = args[1].endsWith("html") ? args[1] : args[1] + ".html";
+		// TODO
+		String htmlFileName = urlData[1].endsWith("html") ? urlData[0] + urlData[1] : 
+			urlData[1].endsWith("/") ? urlData[0] + urlData[1].substring(0, urlData[1].length()-1) + ".html" : 
+				urlData[0] + urlData[1] + ".html";
+		System.out.println("fileName: "+htmlFileName);
+		//String htmlFileName = args[1].endsWith("html") ? args[1] : args[1] + ".html";
 		
 		try {
 			client.connect(host, port);
@@ -62,6 +67,7 @@ public class Main{
 			imageLocations[i] = images.get(i).attr("src");
 			System.out.println("IMAGE URL: " + images.get(i).attr("src"));
 		}
+		System.out.println("");
 		return imageLocations;
 	}
 	
@@ -74,7 +80,7 @@ public class Main{
 				if (path.length() > 0) result[1] = path;
 				else result[1] = "/";
 				return result;
-			} catch (MalformedURLException ignore) {
+			} catch (MalformedURLException e) {
 				throw new IllegalArgumentException(fullUri);
 			}
 		else {
