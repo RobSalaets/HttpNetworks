@@ -19,6 +19,8 @@ public class ChatClient{
 	private String currentHostHttp;
 
 	public ChatClient(){
+		// TODO
+		/*
 		try{
 			responseLog = new File("./headerLog.txt");
 			responseLog.createNewFile();
@@ -27,6 +29,7 @@ public class ChatClient{
 		}catch (IOException e){
 			e.printStackTrace();
 		}
+		*/
 	}
 
 	public void connect(String host, int port){
@@ -40,7 +43,7 @@ public class ChatClient{
 		}
 	}
 
-	public void httpCommand(String command, String host, String resource, String httpNumber, String content, boolean closeHost){
+	public void httpCommand(String command, String host, String resource, String httpNumber, String content, boolean closeHost){		
 		if(!currentHostHttp.isEmpty() && !currentHostHttp.equals(httpNumber))
 			System.out.println("Host uses other http version: " + currentHostHttp);
 		
@@ -50,7 +53,7 @@ public class ChatClient{
 		System.out.println("Host: " + host);
 		out.println("User-Agent: " + "CNHttpChatclient/1.0");
 		System.out.println("User-Agent: " + "CNHttpChatclient/1.0");
-		if(httpNumber.endsWith("1.1") && closeHost) {			
+		if(httpNumber.endsWith("1.1") && closeHost) {
 			out.println("Connection: close");
 			System.out.println("Connection: close");
 		}
@@ -64,16 +67,32 @@ public class ChatClient{
 			out.println(content);
 			System.out.println(content);
 		}
+		else if (command.toLowerCase().equals("head")) {
+		}
 		out.println();
 		
 		System.out.println();
 	}
 
 	public boolean waitForResource(String filename){
+		// TODO: Make for every host its own header file
+		if (!filename.contains("/")) {
+			try {
+				responseLog = new File("./header_"+filename.substring(0, filename.length()-5)+".txt");
+				responseLog.createNewFile();
+				logWriter = new PrintWriter(responseLog, "UTF-8");
+			} catch (IOException e) {
+				System.out.println("ERROR: Unable to create header-file");
+				System.out.println(e.getMessage());
+			}
+		}
+		
 		try{
 			String line = readLine();
-			System.out.println(line + " for resource: " + filename);
-			System.out.println();
+			// TODO
+			System.out.println(line);
+			//System.out.println(line + " for resource: " + filename);
+			//System.out.println();
 			if(line.toLowerCase().startsWith("HTTP/"))
 				currentHostHttp = line.split(" ")[0].trim();
 			if(line.toLowerCase().contains("200 ok")) {
@@ -88,6 +107,9 @@ public class ChatClient{
 				boolean binaryContent = false;
 				int contentLength = -1;
 				while(!line.isEmpty()){
+					// TODO
+					if (!filename.contains("/"))	// Do not save the headers of the embedded objects
+						logWriter.println(line);
 					headers.append(line + "\n");
 					if(line.toLowerCase().contains("content-type") && line.toLowerCase().contains("image"))
 						binaryContent = true;
@@ -96,8 +118,7 @@ public class ChatClient{
 					}
 					line = readLine();
 				}
-				
-				logWriter.write(headers.toString() + "\n");
+				//logWriter.write(headers.toString() + "\n");
 				byte[] buffer = new byte[contentLength];
 				int read = 0;
 				int toRead = contentLength;
@@ -165,9 +186,39 @@ public class ChatClient{
 			socket.close();
 			in.close();
 			out.close();
-			logWriter.close();
+			if (logWriter != null)
+				logWriter.close();
 		}catch (IOException e){
 			e.printStackTrace();
 		}
+	}
+	
+	public boolean waitForHeader(String filename) {
+		if (!filename.contains("/")) {
+			try {
+				responseLog = new File("./header_"+filename+".txt");
+				responseLog.createNewFile();
+				logWriter = new PrintWriter(responseLog, "UTF-8");
+			} catch (IOException e) {
+				System.out.println("ERROR: Unable to create header-file");
+				System.out.println(e.getMessage());
+			}
+		}
+		
+		String line = readLine();
+		if(line.toLowerCase().startsWith("HTTP/"))
+			currentHostHttp = line.split(" ")[0].trim();
+		if(line.toLowerCase().contains("200 ok")) {
+			StringBuffer headers = new StringBuffer();
+			while(!line.isEmpty()){
+				if (!filename.contains("/"))
+					logWriter.println(line);
+				headers.append(line + "\n");
+				line = readLine();
+			}
+			System.out.println(headers.toString());
+			return false;
+		}
+		return true;
 	}
 }

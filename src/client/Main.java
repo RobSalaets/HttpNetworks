@@ -27,7 +27,7 @@ public class Main{
 
 		switch(command){
 			case "GET":
-				handleGet(client, host, port, command, resource, httpNumber, urlData);
+				handleGet(client, host, port, command, resource, httpNumber);
 				break;
 			case "POST":
 				System.out.println("Enter content for your " + command + " request: ");
@@ -39,6 +39,10 @@ public class Main{
 				String contentPut = terminalInput.nextLine();
 				handlePutPost(client, host, port, command, resource, httpNumber, contentPut);
 				break;
+			case "HEAD":
+				// TODO
+				handleHead(client, host, port, command, resource, httpNumber);
+				break;
 			default:
 				System.out.println("Command not supported: " + command);
 				break;
@@ -48,8 +52,8 @@ public class Main{
 		client.close();
 	}
 
-	private static void handleGet(ChatClient client, String host, int port, String command, String resource, String httpNumber, String[] urlData){
-		String htmlFileName = urlData[1].endsWith("html") ? urlData[0] + urlData[1] : urlData[1].endsWith("/") ? urlData[0] + urlData[1].substring(0, urlData[1].length() - 1) + ".html" : urlData[0] + urlData[1] + ".html";
+	private static void handleGet(ChatClient client, String host, int port, String command, String resource, String httpNumber){
+		String htmlFileName = resource.endsWith("html") ? host + resource : resource.endsWith("/") ? host + resource.substring(0, resource.length() - 1) + ".html" : host + resource + ".html";
 		System.out.println("fileName: " + htmlFileName);
 
 		try{
@@ -101,6 +105,17 @@ public class Main{
 			e.printStackTrace();
 		}
 	}
+	
+	private static void handleHead(ChatClient client, String host, int port, String command, String resource, String httpNumber) {
+		client.connect(host, port);
+		client.httpCommand(command, host, resource, httpNumber, null, false);
+			try {
+				while(client.waitForHeader(host))
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+	}
 
 	private static String[] lookupEmbedded(String fileName){
 		String data = "";
@@ -134,14 +149,18 @@ public class Main{
 				throw new IllegalArgumentException(fullUri);
 			}
 		else{
-			if(fullUri.split("/", 2).length == 1){
-				result[0] = fullUri;
+			String[] temp = fullUri.split("/", 2);
+			if(temp.length == 1 || temp[1].length() == 0){
+				result[0] = temp[0];
 				result[1] = "/";
 				return result;
-			}else if(fullUri.startsWith("www")){
+			} else {
 				return fullUri.split("/", 2);
-			}
-			throw new IllegalArgumentException("No host");
+			} 
+			/*
+			else
+				throw new IllegalArgumentException("No host");
+				*/
 		}
 	}
 }
