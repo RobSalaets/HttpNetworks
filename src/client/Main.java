@@ -51,7 +51,6 @@ public class Main{
 	private static void handleGet(ChatClient client, String host, int port, String command, String resource, String httpNumber, String[] urlData){
 		String htmlFileName = urlData[1].endsWith("html") ? urlData[0] + urlData[1] : urlData[1].endsWith("/") ? urlData[0] + urlData[1].substring(0, urlData[1].length() - 1) + ".html" : urlData[0] + urlData[1] + ".html";
 		System.out.println("fileName: " + htmlFileName);
-
 		try{
 			// Request html file
 			client.connect(host, port);
