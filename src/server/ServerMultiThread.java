@@ -17,21 +17,16 @@ public class ServerMultiThread extends Thread {
 	public void run() {
 		try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
-			String inputLine = null, outputLine;
+			String inputLine;
 			Server server = new Server();
 
-			// TODO: input
-			outputLine = server.processInput(inputLine);
-			out.println(outputLine);
-
-			while ((inputLine = in.readLine()) != null) {
-				outputLine = server.processInput(inputLine);
-				out.println(outputLine);
-
-				// TODO: Handle when to end server
-				if (outputLine != null && outputLine.equals("exit"))
-					break;
+			while (!server.needToClose()) {
+				while(!(inputLine = in.readLine()).equals("")) {
+					server.processInput(inputLine);
+				}
+				out.println(server.getOutput());
 			}
+			
 			socket.close();
 		} catch (IOException e) {
 			System.out.println("Exception caught when trying to connect to the server. \n"
