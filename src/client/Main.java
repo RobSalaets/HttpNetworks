@@ -42,7 +42,6 @@ public class Main{
 				handlePutPost(client, host, port, command, resource, httpNumber, contentPut);
 				break;
 			case "HEAD":
-				// TODO
 				handleHead(client, host, port, command, resource, httpNumber);
 				break;
 			default:
@@ -102,6 +101,7 @@ public class Main{
 		try{
 			client.connect(host, port);
 			client.httpCommand(command, host, resource, httpNumber, content, true);
+			// TODO: Infinity loop with response
 			while(client.waitForResponse())
 				Thread.sleep(100);
 		}catch (InterruptedException e){

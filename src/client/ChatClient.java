@@ -89,12 +89,15 @@ public class ChatClient{
 		
 		try{
 			String line = readLine();
+			// TODO: Infinity loop bij false, indien true lijkt alles wel te werken? 
+			// 	--> Wat is er fout bij true? Indien null dan is einde byte-array bereikt dus is er geen resource?
+			//  --> Wordt er niet al bij de inputStream op antwoord gewacht?
 			if(line == null)
-				return false;
+				return true;
 			// TODO
 			//System.out.println(line + " for resource: " + filename);
 			//System.out.println();
-			if(line.toLowerCase().startsWith("HTTP/"))
+			if(line.toLowerCase().startsWith("http/"))
 				currentHostHttp = line.split(" ")[0].trim();
 			if(line.toLowerCase().contains("200 ok")) {
 				System.out.println(line);
@@ -135,11 +138,11 @@ public class ChatClient{
 				binWriter.close();
 				return true;
 			} else {
-				System.out.println(line);
 				while(line != null){
-					line = readLine();
 					System.out.println(line);
+					line = readLine();
 				}
+				System.out.println();
 				return true;
 			}
 		}catch (IOException e){
@@ -150,7 +153,7 @@ public class ChatClient{
 	
 	public boolean waitForResponse(){
 		String line = readLine();
-		if(line.toLowerCase().startsWith("HTTP/")) {
+		if(line.toLowerCase().startsWith("http/")) {
 			currentHostHttp = line.split(" ")[0].trim();
 			while(!line.isEmpty()){
 				System.out.println(line);
@@ -166,6 +169,7 @@ public class ChatClient{
 		int character= -1;
 		try{
 			do{
+				socket.setSoTimeout(2000);
 				character = in.read();
 				if(character == -1)
 					break;
@@ -180,9 +184,7 @@ public class ChatClient{
 					break;
 				else bo.write(character);
 			}while(character != -1);
-			
-		}catch (IOException e){
-			e.printStackTrace();
+		}catch (IOException ignore){
 		}
 		String res = bo.toString();
 		bo.close();
@@ -214,7 +216,7 @@ public class ChatClient{
 		}
 		
 		String line = readLine();
-		if(line.toLowerCase().startsWith("HTTP/"))
+		if(line.toLowerCase().startsWith("http/"))
 			currentHostHttp = line.split(" ")[0].trim();
 		if(line.toLowerCase().contains("200 ok")) {
 			StringBuffer headers = new StringBuffer();
