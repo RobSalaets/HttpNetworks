@@ -21,16 +21,19 @@ public class ServerMultiThread extends Thread {
 			Server server = new Server();
 
 			while (!server.needToClose()) {
-				while(!(inputLine = in.readLine()).equals("")) {
-					server.processInput(inputLine);
+				inputLine = in.readLine();
+				if(inputLine != null) {
+					while(in.ready()) {
+						server.processInput(inputLine);
+						inputLine = in.readLine();
+					}
+					out.println(server.getOutput());
 				}
-				out.println(server.getOutput());
 			}
 			
 			socket.close();
 		} catch (IOException e) {
-			System.out.println("Exception caught when trying to connect to the server. \n"
-					+ "Possibly client disconnected from server.");
+			System.out.println("Client disconnected from server.");
 			System.out.println(e.getMessage());
 		}
 	}
