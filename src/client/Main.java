@@ -6,8 +6,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -55,18 +57,19 @@ public class Main{
 	private static void handleGet(ChatClient client, String host, int port, String command, String resource, String httpNumber){
 		String htmlFileName = resource.endsWith("html") ? host + resource : resource.endsWith("/") ? host + resource.substring(0, resource.length() - 1) + ".html" : host + resource + ".html";
 		System.out.println("fileName: " + htmlFileName);
-		try{
+
+		try {
 			// Request html file
 			client.connect(host, port);
 			client.httpCommand(command, host, resource, httpNumber, null, false);
-			while(client.waitForResource(htmlFileName))
+		
+			while(!client.waitForResource(htmlFileName))
 				Thread.sleep(100);
-
 			// Request embedded Images
-			String[] embeddedImages = lookupEmbedded(htmlFileName);
+			Set<String> embeddedImages = lookupEmbedded(htmlFileName);
 			List<String> foreignHostResources = new ArrayList<String>();
-			for(int i = 0; i < embeddedImages.length; i++){
-				String imageLocation = embeddedImages[i];
+			int ii = 0;
+			for(String imageLocation : embeddedImages){
 				String imageResource = imageLocation.startsWith("/") ? imageLocation : "/" + imageLocation;
 				String imageHost = host;
 				if(imageLocation.contains("//")){
@@ -77,27 +80,28 @@ public class Main{
 				}
 				if(httpNumber.endsWith("1.0"))
 					client.connect(imageHost, port);
-				client.httpCommand("GET", imageHost, imageResource, httpNumber, null, i == embeddedImages.length - 1);
-				while(client.waitForResource("." + imageResource))
-					Thread.sleep(100);
+				client.httpCommand("GET", imageHost, imageResource, httpNumber, null, ii == embeddedImages.size() - 1);
+				while(!client.waitForResource("." + imageResource))
+					Thread.sleep(100);				
+				ii++;
 			}
 			// Request images from other hosts
 			for(int i = 0; i < foreignHostResources.size(); i += 2){
 				client.connect(foreignHostResources.get(i), port);
 				client.httpCommand("GET", foreignHostResources.get(i), foreignHostResources.get(i + 1), httpNumber, null, i == foreignHostResources.size() - 2);
-				while(client.waitForResource("." + foreignHostResources.get(i + 1)))
-					Thread.sleep(100);
+				while(!client.waitForResource("." + foreignHostResources.get(i + 1)))
+					Thread.sleep(100);			
 			}
-
-		}catch (InterruptedException e){
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}	
 	}
 
 	private static void handlePutPost(ChatClient client, String host, int port, String command, String resource, String httpNumber, String content){
 		try{
 			client.connect(host, port);
-			client.httpCommand(command, host, "/" + resource, httpNumber, content, true);
+			client.httpCommand(command, host, resource, httpNumber, content, true);
 			while(client.waitForResponse())
 				Thread.sleep(100);
 		}catch (InterruptedException e){
@@ -116,7 +120,7 @@ public class Main{
 			}
 	}
 
-	private static String[] lookupEmbedded(String fileName){
+	private static Set<String> lookupEmbedded(String fileName){
 		String data = "";
 		try{
 			data = new String(Files.readAllBytes(Paths.get(fileName)));
@@ -125,9 +129,9 @@ public class Main{
 		}
 		Document doc = Jsoup.parse(data);
 		Elements images = doc.select("img[src]");
-		String[] imageLocations = new String[images.size()];
+		Set<String> imageLocations = new HashSet<>();
 		for(int i = 0; i < images.size(); i++){
-			imageLocations[i] = images.get(i).attr("src");
+			imageLocations.add(images.get(i).attr("src"));
 			System.out.println("IMAGE URL: " + images.get(i).attr("src"));
 		}
 		System.out.println("");
