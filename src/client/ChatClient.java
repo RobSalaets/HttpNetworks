@@ -89,13 +89,15 @@ public class ChatClient{
 		
 		try{
 			String line = readLine();
+			if(line == null)
+				return false;
 			// TODO
-			System.out.println(line);
 			//System.out.println(line + " for resource: " + filename);
 			//System.out.println();
 			if(line.toLowerCase().startsWith("HTTP/"))
 				currentHostHttp = line.split(" ")[0].trim();
 			if(line.toLowerCase().contains("200 ok")) {
+				System.out.println(line);
 				File file = new File(filename);
 				if(filename.contains("/"))
 					file.getParentFile().mkdirs();
@@ -131,13 +133,19 @@ public class ChatClient{
 				}while(toRead > 0);
 				writer.close();
 				binWriter.close();
-				return false;
+				return true;
+			} else {
+				System.out.println(line);
+				while(line != null){
+					line = readLine();
+					System.out.println(line);
+				}
+				return true;
 			}
 		}catch (IOException e){
 			e.printStackTrace();
-			return false;
 		}
-		return true;
+		return false;
 	}
 	
 	public boolean waitForResponse(){
@@ -155,8 +163,8 @@ public class ChatClient{
 
 	private String readLine(){
 		ByteOutputStream bo = new ByteOutputStream();
+		int character= -1;
 		try{
-			int character;
 			do{
 				character = in.read();
 				if(character == -1)
@@ -178,7 +186,7 @@ public class ChatClient{
 		}
 		String res = bo.toString();
 		bo.close();
-		return res;
+		return character == -1 ? null : res;
 	}
 
 	public void close(){
