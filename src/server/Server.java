@@ -24,26 +24,30 @@ public class Server {
 	private boolean parseError = false;
 	private boolean serverError = false;
 	private boolean notFound = false;
-	private boolean content = false;
+	private boolean inContent = false;
 	private String inputContent;
-	private int contentLength = -1;
+	private byte[] GETContent;
+	private int inContentLength = -1;
 	private StringBuilder log = new StringBuilder();
 
 	public void processInput(BufferedInputStream in) {
 		String inputLine = readLine(in);
+		if(inputLine == null) {
+			log.append("Client disconnected from server."+ "\n");
+			disconnected = true;
+			close = true;
+			return;
+		}
 		while(inputLine != null) {
-			if(content)
+			if(inContent)
 				inputContent += inputLine + "\n";
 			else
 				parseInput(inputLine);
-			if(!(inputLine.isEmpty() && !content))
+			if(!(inputLine.isEmpty() && !inContent))
 				inputLine = readLine(in);
 			else
 				return;
 		}
-		log.append("Client disconnected from server."+ "\n");
-		disconnected = true;
-		close = true;
 
 	}
 	
@@ -86,10 +90,10 @@ public class Server {
 				if(a.length != 2)
 					parseError = true;
 				else
-					contentLength  = Integer.parseInt(a[1].trim());
+					inContentLength  = Integer.parseInt(a[1].trim());
 			}
-			if(theInput.isEmpty() && contentLength > 0) {
-				content  = true;
+			if(theInput.isEmpty() && inContentLength > 0) {
+				inContent  = true;
 				inputContent = "";
 			}
 		}
@@ -116,19 +120,17 @@ public class Server {
 	public String getOutput() {
 		log.append("---SEND\n");
 		StringBuilder headers = new StringBuilder();
-		StringBuilder respContent = new StringBuilder();
 		if(parseError || (httpVersion.contains("1.1") && host.isEmpty())) {
 			appendDefaultHeaders(headers, "404 Bad Request");
 		}else if(command.equals("GET") || command.equals("HEAD")) {
-			String content = getHtml(path);
-			if(content == null) {
+			GETContent = getResource(path);
+			if(GETContent == null) {
 				notFound = true;
 			}else {
 				appendDefaultHeaders(headers, "200 OK");
-				headers.append("Content-Type: text/html, charset=UTF-8\r\n");
-				headers.append("Content-Length: " + content.length()+"\r\n");
-				if(command.equals("GET"))
-					respContent.append(content);
+				String[] ext = path.split("\\.");
+				headers.append("Content-Type: " + (path.endsWith("html") || path.endsWith("txt") ? "text/html, charset=UTF-8" : "image/"+ext[ext.length-1]) + "\r\n");
+				headers.append("Content-Length: " + GETContent.length+"\r\n");
 			}
 		}else if(command.equals("PUT")) {
 			File file = new File("."+(path.startsWith("/") ? path : "/" + path));
@@ -165,16 +167,11 @@ public class Server {
 			appendDefaultHeaders(headers, "500 Server Error");
 		}
 		if(httpVersion.contains("1.0") || close)
-			headers.append("Connection: close");
-		headers.append("\r\n");
+			headers.append("Connection: close\r\n");
 		log.append(headers.toString() + "\n");
-		if(command.equals("GET") && noError())
-			headers.append(respContent.toString());
+		headers.append("\r\n");
+		
 		return headers.toString();
-	}
-	
-	private boolean noError() {
-		return !(parseError || serverError || notFound);
 	}
 	
 	private void appendDefaultHeaders(StringBuilder headers, String statusCode) {
@@ -192,12 +189,12 @@ public class Server {
 		
 	}
 	
-	private String getHtml(String fileName) {
+	private byte[] getResource(String fileName) {
 		
 		File file = new File("."+(fileName.startsWith("/") ? fileName : "/" + fileName));
 		if(file.exists()) {
 			try {
-				return new String(Files.readAllBytes(file.toPath()));
+				return Files.readAllBytes(file.toPath());
 			} catch (IOException e) {
 				log.append("ERROR: Could not read the file"+"\n" + e.getMessage() + "\n");
 			}
@@ -213,7 +210,7 @@ public class Server {
 	}
 	
 	private String readLine(BufferedInputStream in){
-		if(contentLength == 0) 
+		if(inContentLength == 0) 
 			return null;
 		
 		ByteOutputStream bo = new ByteOutputStream();
@@ -221,14 +218,14 @@ public class Server {
 		try{
 			do{
 				character = in.read();
-				if(content)
-					contentLength--;
+				if(inContent)
+					inContentLength--;
 				
 				if(character == -1)
 					break;
 				else if(character == '\r'){
 					in.mark(2);
-					if(!content)
+					if(!inContent)
 						character = in.read();
 					if(character == '\n'){
 						break;
@@ -237,7 +234,7 @@ public class Server {
 				}else if(character == '\n')
 					break;
 				else bo.write(character);
-			}while(character != -1 && (!content || contentLength > 0));
+			}while(character != -1 && (!inContent || inContentLength > 0));
 		}catch (IOException e){
 			e.printStackTrace();
 		}
@@ -253,5 +250,11 @@ public class Server {
 
 	public boolean isDisconnected(){
 		return disconnected;
+	}
+
+	public byte[] getContent(){
+		if(!notFound && command.equals("GET"))
+			return GETContent;
+		return null;
 	}
 }

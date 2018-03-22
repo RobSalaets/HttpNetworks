@@ -1,13 +1,13 @@
 package client;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 
 public class ChatClient{
 
@@ -114,7 +114,6 @@ public class ChatClient{
 				currentHostHttp = line.split(" ")[0].trim();
 			
 			if(line.toLowerCase().contains("200 ok")) {
-				System.out.println(line);
 				File file = new File(filename);
 				if(filename.contains("/")) file.getParentFile().mkdirs();
 				file.createNewFile();
@@ -129,16 +128,16 @@ public class ChatClient{
 					// Do not save the headers of the embedded objects
 					if (!filename.contains("/"))
 						logWriter.println(line);
-					
+					System.out.println(line);
 					headers.append(line + "\n");
 					if(line.toLowerCase().contains("content-type") && line.toLowerCase().contains("image"))
 						binaryContent = true;
 					
 					if(line.toLowerCase().contains("content-length"))
 						contentLength = Integer.parseInt(line.split(":")[1].trim());
-					
 					line = readLine();
 				}
+				System.out.println();
 				
 				byte[] buffer = new byte[contentLength];
 				int read = 0;
@@ -182,7 +181,7 @@ public class ChatClient{
 	public boolean waitForResponse(){
 		String line = readLine();
 		
-		if(line.toLowerCase().startsWith("http/")) {
+		if(line != null && line.toLowerCase().startsWith("http/")) {
 			currentHostHttp = line.split(" ")[0].trim();
 			while(!line.isEmpty()){
 				System.out.println(line);
@@ -199,12 +198,13 @@ public class ChatClient{
 	 * @return	Return the character that corresponds with the byte that is read
 	 */
 	private String readLine(){
-		ByteOutputStream bo = new ByteOutputStream();
+		ByteArrayOutputStream bo = new ByteArrayOutputStream();
 		int character= -1;
 		
+		String res = null;
 		try{
 			do{
-				socket.setSoTimeout(2000);
+//				socket.setSoTimeout(2000); TODO
 				character = in.read();
 				
 				if(character == -1) break;
@@ -219,12 +219,12 @@ public class ChatClient{
 				
 				else bo.write(character);
 			}while(character != -1);
+			res  = bo.toString();
+			bo.close();
 		}catch (IOException ignore){
 			// Socket timed out. Return null and the receiving method will handle the null-string
 		}
 		
-		String res = bo.toString();
-		bo.close();
 		
 		return character == -1 ? null : res;
 	}

@@ -35,10 +35,14 @@ public class Main{
 				handleGet(client, host, port, command, resource, httpNumber);
 				break;
 			case "POST":
-			case "PUT":
 				System.out.println("Enter content for your " + command + " request: ");
 				String content = terminalInput.nextLine();
 				handlePutPost(client, host, port, command, resource, httpNumber, content);
+				break;
+			case "PUT":
+				System.out.println("Enter content for your " + command + " request: ");
+				String content1 = terminalInput.nextLine();
+				handlePutPost(client, host, port, command, resource, httpNumber, content1);
 				break;
 			case "HEAD":
 				handleHead(client, host, port, command, resource, httpNumber);
@@ -84,24 +88,26 @@ public class Main{
 			Set<String> embeddedImages = lookupEmbedded(htmlFileName);
 			List<String> foreignHostResources = new ArrayList<String>();
 			int embeddedLocationIndex = 0;
-			for(String imageLocation : embeddedImages){
-				String imageResource = imageLocation.startsWith("/") ? imageLocation : "/" + imageLocation;
-				String imageHost = host;
-				
+			for(String imageLocation : embeddedImages) {
 				if(imageLocation.contains("//")){
 					String[] imageUrlData = getHostAndPath(imageLocation);
 					foreignHostResources.add(imageUrlData[0]);
 					foreignHostResources.add(imageUrlData[1]);
-					continue;
 				}
+			}
+			for(String imageLocation : embeddedImages){
+				String imageResource = imageLocation.startsWith("/") ? imageLocation : "/" + imageLocation;
+				String imageHost = host;
+				
+				if(imageLocation.contains("//"))
+					continue;
 				
 				if(httpNumber.endsWith("1.0")) client.connect(imageHost, port);
 				
 				client.httpCommand("GET", imageHost, imageResource, httpNumber, null, 
-						embeddedLocationIndex == embeddedImages.size() - 1);
+						embeddedLocationIndex == embeddedImages.size()-foreignHostResources.size()/2-1);
 				
-				while(!client.waitForResource("." + imageResource)) Thread.sleep(100);				
-				
+				while(!client.waitForResource("." + imageResource)) Thread.sleep(100);
 				embeddedLocationIndex++;
 			}
 			
