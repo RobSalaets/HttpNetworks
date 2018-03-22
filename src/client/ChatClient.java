@@ -19,17 +19,6 @@ public class ChatClient{
 	private String currentHostHttp;
 
 	public ChatClient(){
-		// TODO
-		/*
-		try{
-			responseLog = new File("./headerLog.txt");
-			responseLog.createNewFile();
-			logWriter = new PrintWriter(responseLog, "UTF-8");
-			currentHostHttp = "";
-		}catch (IOException e){
-			e.printStackTrace();
-		}
-		*/
 	}
 
 	public void connect(String host, int port){
@@ -70,7 +59,6 @@ public class ChatClient{
 		else if (command.toLowerCase().equals("head")) {
 		}
 		out.println();
-		
 		System.out.println();
 	}
 
@@ -91,10 +79,8 @@ public class ChatClient{
 			String line = readLine();
 			if(line == null)
 				return false;
-			// TODO
-			//System.out.println(line + " for resource: " + filename);
-			//System.out.println();
-			if(line.toLowerCase().startsWith("HTTP/"))
+			
+			if(line.toLowerCase().startsWith("http/"))
 				currentHostHttp = line.split(" ")[0].trim();
 			if(line.toLowerCase().contains("200 ok")) {
 				System.out.println(line);
@@ -133,6 +119,7 @@ public class ChatClient{
 				}while(toRead > 0);
 				writer.close();
 				binWriter.close();
+				logWriter.close();
 				return true;
 			} else {
 				System.out.println(line);
@@ -224,6 +211,7 @@ public class ChatClient{
 				headers.append(line + "\n");
 				line = readLine();
 			}
+			logWriter.close();
 			System.out.println(headers.toString());
 			return false;
 		}

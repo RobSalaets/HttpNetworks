@@ -13,10 +13,13 @@ public class MainServer {
 
 		int portNumber = Integer.parseInt(args[0]);
 		boolean listening = true;
-
+		System.out.println("Server: STARTED - waiting for connections...");
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
-			while (listening)
-				new ServerMultiThread(serverSocket.accept()).start();
+			while (listening) {
+				ServerMultiThread s = new ServerMultiThread(serverSocket.accept());
+				s.start();
+				System.out.println("New Thread " + String.valueOf(s.getId()));
+			}
 		} catch (IOException e) {
 			System.out.println(
 					"Exception caught when trying to listen on port " + portNumber + " or listening for a connection");
