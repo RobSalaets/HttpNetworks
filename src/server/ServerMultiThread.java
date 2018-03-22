@@ -9,6 +9,9 @@ import java.net.SocketException;
 public class ServerMultiThread extends Thread {
 	private Socket socket = null;
 
+	/*
+	 * The constructor
+	 */
 	public ServerMultiThread(Socket socket) {
 		super("ServerMultiThread");
 		this.socket = socket;
@@ -25,13 +28,14 @@ public class ServerMultiThread extends Thread {
 					String output = server.getOutput();
 					out.write(output.getBytes(), 0, output.length());
 					byte[] data = server.getContent();
-					if(data != null) {
+					
+					// TODO
+					if(data != null && server.checkModified()) {
 						out.write(data, 0, data.length);
 					}
 					out.flush();
 					
 				}
-				
 				server.printLog(String.valueOf(this.getId()));
 			}
 			socket.close();

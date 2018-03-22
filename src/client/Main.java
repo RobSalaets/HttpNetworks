@@ -35,10 +35,6 @@ public class Main{
 				handleGet(client, host, port, command, resource, httpNumber);
 				break;
 			case "POST":
-				System.out.println("Enter content for your " + command + " request: ");
-				String content = terminalInput.nextLine();
-				handlePutPost(client, host, port, command, resource, httpNumber, content);
-				break;
 			case "PUT":
 				System.out.println("Enter content for your " + command + " request: ");
 				String content1 = terminalInput.nextLine();
@@ -224,6 +220,7 @@ public class Main{
 				
 				return result;
 			}catch (MalformedURLException e){
+				System.out.println("Invalid address!");
 				throw new IllegalArgumentException(fullUri);
 			}
 		else{

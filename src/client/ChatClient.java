@@ -17,6 +17,9 @@ public class ChatClient{
 	private File responseLog;
 	private PrintWriter logWriter;
 	private String currentHostHttp;
+	// TODO
+	private boolean checkIfModified = true;
+	private String date = "Wed, 21 Oct 2020 07:28:00 GMT";	// Keep this format!
 
 
 	/*
@@ -65,6 +68,12 @@ public class ChatClient{
 		out.println("User-Agent: " + "CNHttpChatclient/1.0");
 		System.out.println("User-Agent: " + "CNHttpChatclient/1.0");
 		
+		// TODO
+		// Handle a check-if-modified-since
+		if (checkIfModified) {
+			out.println("If-Modified-Since: "+date);
+			System.out.print("If-Modified-Since: "+date);
+		}
 		if(httpNumber.endsWith("1.1") && closeHost) {
 			out.println("Connection: close");
 			System.out.println("Connection: close");
@@ -82,6 +91,7 @@ public class ChatClient{
 		}
 		else if (command.toLowerCase().equals("head")) {
 		}
+		
 		out.println();
 		System.out.println();
 	}
@@ -94,18 +104,6 @@ public class ChatClient{
 	 * @return	Return false when the user has to wait, true when all the resources are fetched
 	 */
 	public boolean waitForResource(String filename){
-		if (!filename.contains("/")) {
-			// Create headerLog-file
-			try {
-				responseLog = new File("./header_"+filename.substring(0, filename.length()-5)+".txt");
-				responseLog.createNewFile();
-				logWriter = new PrintWriter(responseLog, "UTF-8");
-			} catch (IOException e) {
-				System.out.println("ERROR: Unable to create header-file");
-				System.out.println(e.getMessage());
-			}
-		}
-		
 		try{
 			String line = readLine();
 			if(line == null) return true;
@@ -114,6 +112,21 @@ public class ChatClient{
 				currentHostHttp = line.split(" ")[0].trim();
 			
 			if(line.toLowerCase().contains("200 ok")) {
+				
+				// TODO
+				if (!filename.contains("/")) {
+					// Create headerLog-file
+					try {
+						responseLog = new File("./header_"+filename.substring(0, filename.length()-5)+".txt");
+						responseLog.createNewFile();
+						logWriter = new PrintWriter(responseLog, "UTF-8");
+					} catch (IOException e) {
+						System.out.println("ERROR: Unable to create header-file");
+						System.out.println(e.getMessage());
+					}
+				}
+				
+				
 				File file = new File(filename);
 				if(filename.contains("/")) file.getParentFile().mkdirs();
 				file.createNewFile();
@@ -204,7 +217,8 @@ public class ChatClient{
 		String res = null;
 		try{
 			do{
-//				socket.setSoTimeout(2000); TODO
+				// TODO
+				socket.setSoTimeout(2000);
 				character = in.read();
 				
 				if(character == -1) break;
@@ -249,24 +263,25 @@ public class ChatClient{
 	 * @param	filename
 	 * 			The file where the html file is stored
 	 */
-	public boolean waitForHeader(String filename) {
-		// Create a headerLog-file
-		if (!filename.contains("/")) {
-			try {
-				responseLog = new File("./header_"+filename+".txt");
-				responseLog.createNewFile();
-				logWriter = new PrintWriter(responseLog, "UTF-8");
-			} catch (IOException e) {
-				System.out.println("ERROR: Unable to create header-file");
-				System.out.println(e.getMessage());
-			}
-		}
-		
+	public boolean waitForHeader(String filename) {		
 		String line = readLine();
 		if(line.toLowerCase().startsWith("http/"))
 			currentHostHttp = line.split(" ")[0].trim();
 		
 		if(line.toLowerCase().contains("200 ok")) {
+			// TODO
+			// Create a headerLog-file
+			if (!filename.contains("/")) {
+				try {
+					responseLog = new File("./header_"+filename+".txt");
+					responseLog.createNewFile();
+					logWriter = new PrintWriter(responseLog, "UTF-8");
+				} catch (IOException e) {
+					System.out.println("ERROR: Unable to create header-file");
+					System.out.println(e.getMessage());
+				}
+			}
+			
 			StringBuffer headers = new StringBuffer();
 			while(!line.isEmpty()){
 				if (!filename.contains("/")) logWriter.println(line);
