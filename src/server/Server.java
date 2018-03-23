@@ -18,9 +18,6 @@ import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 
 public class Server {
 	
-	// TODO
-	// Enter to new line when post in existing file
-	
 	private String command = "";
 	private String path = "";
 	private String host = "";
@@ -36,7 +33,6 @@ public class Server {
 	private int inContentLength = -1;
 	private StringBuilder log = new StringBuilder();
 
-	// TODO
 	private boolean containsIfModified = false;
 	private boolean isModified = true;
 	private String checkModifiedDate;
@@ -102,7 +98,6 @@ public class Server {
 					break;
 			}
 			
-			// TODO
 			if (theInput.contains("If-Modified-Since:")) {	// Case sensitive!
 				containsIfModified = true;
 				checkModifiedDate = theInput.substring(19);
@@ -184,7 +179,6 @@ public class Server {
 			if(GETContent == null) notFound = true;
 			
 			else {
-				// TODO
 				if (containsIfModified) {
 					try {
 						String lastModifiedDate = getFormattedDate();
@@ -202,7 +196,7 @@ public class Server {
 						} else {
 							headers.append(String.format("HTTP/1.1 " + 304 + " Not Modified" + "\n\r"));
 							isModified = false;
-							close = true;	// Moet de connectie gesloten worden?
+							close = true;
 						}
 					} catch (ParseException e) {
 						e.printStackTrace();

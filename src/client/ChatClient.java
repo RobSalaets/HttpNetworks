@@ -17,8 +17,8 @@ public class ChatClient{
 	private File responseLog;
 	private PrintWriter logWriter;
 	private String currentHostHttp;
-	// TODO
-	private boolean checkIfModified = true;
+	
+	private boolean checkIfModified = false;
 	private String date = "Wed, 21 Oct 2020 07:28:00 GMT";	// Keep this format!
 
 
@@ -32,7 +32,7 @@ public class ChatClient{
 	 */
 	public void connect(String host, int port){
 		try{
-			socket = new Socket(host, port);
+			socket = new Socket(host, port);			
 			in = new BufferedInputStream(socket.getInputStream());
 			out = new PrintWriter(socket.getOutputStream(), true);
 			currentHostHttp = "";
@@ -68,12 +68,12 @@ public class ChatClient{
 		out.println("User-Agent: " + "CNHttpChatclient/1.0");
 		System.out.println("User-Agent: " + "CNHttpChatclient/1.0");
 		
-		// TODO
 		// Handle a check-if-modified-since
 		if (checkIfModified) {
 			out.println("If-Modified-Since: "+date);
 			System.out.print("If-Modified-Since: "+date);
 		}
+		
 		if(httpNumber.endsWith("1.1") && closeHost) {
 			out.println("Connection: close");
 			System.out.println("Connection: close");
@@ -112,8 +112,6 @@ public class ChatClient{
 				currentHostHttp = line.split(" ")[0].trim();
 			
 			if(line.toLowerCase().contains("200 ok")) {
-				
-				// TODO
 				if (!filename.contains("/")) {
 					// Create headerLog-file
 					try {
@@ -217,7 +215,6 @@ public class ChatClient{
 		String res = null;
 		try{
 			do{
-				// TODO
 				socket.setSoTimeout(2000);
 				character = in.read();
 				
@@ -235,8 +232,9 @@ public class ChatClient{
 			}while(character != -1);
 			res  = bo.toString();
 			bo.close();
-		}catch (IOException ignore){
-			// Socket timed out. Return null and the receiving method will handle the null-string
+		}catch (IOException e){
+			System.out.println();
+			System.out.println(e.getMessage());
 		}
 		
 		
@@ -269,7 +267,6 @@ public class ChatClient{
 			currentHostHttp = line.split(" ")[0].trim();
 		
 		if(line.toLowerCase().contains("200 ok")) {
-			// TODO
 			// Create a headerLog-file
 			if (!filename.contains("/")) {
 				try {
